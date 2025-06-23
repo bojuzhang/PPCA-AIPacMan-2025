@@ -30,7 +30,16 @@ def shopSmart(orderList, fruitShops):
         fruitShops: List of FruitShops
     """
     "*** YOUR CODE HERE ***"
-    return None
+    bestshop = None
+    bestcosts = -1
+    for shop in fruitShops : 
+        totalCost = 0
+        for fruit, numPound in orderList :
+            totalCost += shop.fruitPrices[fruit] * numPound
+        if (bestshop == None) or (totalCost < bestcosts) : 
+            bestshop = shop
+            bestcosts = totalCost
+    return bestshop
 
 
 if __name__ == '__main__':
