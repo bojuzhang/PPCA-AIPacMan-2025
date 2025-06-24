@@ -302,17 +302,16 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         tmp = self.findcorner(self.startingPosition)
-        match tmp:
-            case -1: 
-                return (0, 0, 0, 0, self.startingPosition)
-            case 0:
-                return (1, 0, 0, 0, self.startingPosition)
-            case 1:
-                return (0, 1, 0, 0, self.startingPosition)
-            case 2:
-                return (0, 0, 1, 0, self.startingPosition)
-            case 3:
-                return (0, 0, 0, 1, self.startingPosition)
+        if tmp == -1: 
+            return (0, 0, 0, 0, self.startingPosition)
+        elif tmp == 0:
+            return (1, 0, 0, 0, self.startingPosition)
+        elif tmp == 1:
+            return (0, 1, 0, 0, self.startingPosition)
+        elif tmp == 2:
+            return (0, 0, 1, 0, self.startingPosition)
+        elif tmp == 3:
+            return (0, 0, 0, 1, self.startingPosition)
 
     def isGoalState(self, state: Any):
         """
@@ -344,17 +343,16 @@ class CornersProblem(search.SearchProblem):
                 continue
             successor = (nextx, nexty)
             tmp = self.findcorner(successor)
-            match tmp:
-                case -1: 
-                    successors.append(((state[0], state[1], state[2], state[3], successor), action, 1))
-                case 0:
-                    successors.append(((1, state[1], state[2], state[3], successor), action, 1))
-                case 1:
-                    successors.append(((state[0], 1, state[2], state[3], successor), action, 1))
-                case 2:
-                    successors.append(((state[0], state[1], 1, state[3], successor), action, 1))
-                case 3:
-                    successors.append(((state[0], state[1], state[2], 1, successor), action, 1))
+            if tmp == -1:
+                successors.append(((state[0], state[1], state[2], state[3], successor), action, 1))
+            elif tmp == 0:
+                successors.append(((1, state[1], state[2], state[3], successor), action, 1))
+            elif tmp == 1:
+                successors.append(((state[0], 1, state[2], state[3], successor), action, 1))
+            elif tmp == 2:
+                successors.append(((state[0], state[1], 1, state[3], successor), action, 1))
+            elif tmp == 3:
+                successors.append(((state[0], state[1], state[2], 1, successor), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
