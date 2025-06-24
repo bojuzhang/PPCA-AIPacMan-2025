@@ -112,12 +112,52 @@ def depthFirstSearch(problem: SearchProblem):
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    queuestate = util.Queue()
+    queueways = util.Queue()
+    start = problem.getStartState()
+    queuestate.push(start)
+    queueways.push([])
+    vis = set()
+    vis.add(start)
+    while not queuestate.isEmpty() :
+        nowstate = queuestate.pop()
+        nowways = queueways.pop()
+        if problem.isGoalState(nowstate) :
+            return nowways
+        nxtarray = problem.getSuccessors(nowstate)
+        for (successor, action, cost) in nxtarray:
+            if successor not in vis: 
+                queuestate.push(successor)
+                nxtways = list(nowways)
+                nxtways.append(action)
+                queueways.push(nxtways)
+                vis.add(successor)
+    return None
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    priorityqueue = util.PriorityQueue()
+    start = problem.getStartState()
+    dis = dict()
+    ways = dict()
+    dis[start] = 0
+    ways[start] = []
+    priorityqueue.push(start, 0)
+    while not priorityqueue.isEmpty() :
+        now = priorityqueue.pop()
+        if (problem.isGoalState(now)) :
+            return ways[now]
+        nxtarray = problem.getSuccessors(now)
+        for (successor, action, cost) in nxtarray:
+            nxtways = list(ways[now])
+            nxtways.append(action)
+            newcost = dis[now] + cost
+            if (successor not in dis) or (newcost < dis[successor]) :
+                priorityqueue.update(successor, newcost)
+                dis[successor] = newcost
+                ways[successor] = nxtways
+    return None
 
 def nullHeuristic(state, problem=None):
     """
@@ -129,7 +169,27 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    priorityqueue = util.PriorityQueue()
+    start = problem.getStartState()
+    dis = dict()
+    ways = dict()
+    dis[start] = 0 + heuristic(start, problem)
+    ways[start] = []
+    priorityqueue.push(start, 0 + heuristic(start, problem))
+    while not priorityqueue.isEmpty() :
+        now = priorityqueue.pop()
+        if (problem.isGoalState(now)) :
+            return ways[now]
+        nxtarray = problem.getSuccessors(now)
+        for (successor, action, cost) in nxtarray:
+            nxtways = list(ways[now])
+            nxtways.append(action)
+            newcost = problem.getCostOfActions(nxtways) + heuristic(successor, problem)
+            if (successor not in dis) or (newcost < dis[successor]) :
+                priorityqueue.update(successor, newcost)
+                dis[successor] = newcost
+                ways[successor] = nxtways
+    return None
 
 
 # Abbreviations
