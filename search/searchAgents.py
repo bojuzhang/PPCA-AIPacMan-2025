@@ -389,8 +389,12 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    cost = 0
+    now = state[4]
+    for i in range(4):
+        if state[i] == 0:
+            cost = max(cost, abs(now[0] - corners[i][0]) + abs(now[1] - corners[i][1]))
+    return cost
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -483,8 +487,17 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    if len(foodGrid.asList()) == 0:
+        return 0
+    cost = 0
+    for food in foodGrid.asList():
+        cost = max(cost, abs(position[0] - food[0]) + abs(position[1] - food[1]))
+    for food1 in foodGrid.asList():
+        for food2 in foodGrid.asList():
+            if food1 == food2:
+                continue
+            cost = max(cost, min(abs(position[0] - food1[0]) + abs(position[1] - food1[1]) + abs(food2[0] - food1[0]) + abs(food2[1] - food1[1]), abs(position[0] - food2[0]) + abs(position[1] - food2[1]) + abs(food2[0] - food1[0]) + abs(food2[1] - food1[1])))
+    return cost
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -514,8 +527,30 @@ class ClosestDotSearchAgent(SearchAgent):
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        queuestate = util.Queue()
+        queueways = util.Queue()
+        queuestate.push(startPosition)
+        queueways.push([])
+        vis = set()
+        vis.add(startPosition)
+        while not queuestate.isEmpty() :
+            nowstate = queuestate.pop()
+            nowways = queueways.pop()
+            if problem.isGoalState(nowstate) :
+                return nowways
+            for direction in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+                x, y = nowstate
+                dx, dy = Actions.directionToVector(direction)
+                nextx, nexty = int(x + dx), int(y + dy)
+                if not problem.walls[nextx][nexty]:
+                    successor = (nextx, nexty)
+                    if successor not in vis: 
+                        queuestate.push(successor)
+                        nxtways = list(nowways)
+                        nxtways.append(direction)
+                        queueways.push(nxtways)
+                        vis.add(successor)
+        return None
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -548,10 +583,8 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         The state is Pacman's position. Fill this in with a goal test that will
         complete the problem definition.
         """
-        x,y = state
-
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        x, y = state
+        return self.food[x][y]
 
 def mazeDistance(point1: Tuple[int, int], point2: Tuple[int, int], gameState: pacman.GameState) -> int:
     """
