@@ -87,7 +87,27 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
+    start = problem.getStartState()
+    stackstate = util.Stack()
+    stackways = util.Stack()
+    stackstate.push(start)
+    stackways.push([])
+    vis = set()
+    while not stackstate.isEmpty() :
+        nowstate = stackstate.pop()
+        nowways = stackways.pop()
+        vis.add(nowstate)
+        if problem.isGoalState(nowstate) :
+            return nowways
+        nxtarray = problem.getSuccessors(nowstate)
+        for (successor, action, cost) in nxtarray:
+            if successor not in vis: 
+                stackstate.push(successor)
+                nxtways = list(nowways)
+                nxtways.append(action)
+                stackways.push(nxtways)
+    return None
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
