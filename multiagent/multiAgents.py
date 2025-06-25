@@ -155,8 +155,32 @@ class MinimaxAgent(MultiAgentSearchAgent):
         gameState.isLose():
         Returns whether or not the game state is a losing state
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def dfs(gameState: GameState, depth, agentIndex):
+            if depth == 0 or gameState.isWin() or gameState.isLose():
+                return self.evaluationFunction(gameState), Directions.STOP
+            num = gameState.getNumAgents()
+            lessdep = 1 if agentIndex + 1 == num else 0
+            if agentIndex == 0:
+                maxx = -999999
+                maxdirection = Directions.STOP
+                for action in gameState.getLegalActions(agentIndex):
+                    val, direction = dfs(gameState.generateSuccessor(agentIndex, action), depth - lessdep, (agentIndex + 1) % num)
+                    if val > maxx:
+                        maxx = val
+                        maxdirection = action
+                return maxx, maxdirection
+            else:
+                minx = 999999
+                mindirection = Directions.STOP
+                for action in gameState.getLegalActions(agentIndex):
+                    val, direction = dfs(gameState.generateSuccessor(agentIndex, action), depth - lessdep, (agentIndex + 1) % num)
+                    if val < minx:
+                        minx = val
+                        mindirection = action
+                return minx, mindirection
+
+        val, action = dfs(gameState, self.depth, 0)
+        return action
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -167,8 +191,39 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def dfs(gameState: GameState, depth, agentIndex, alpha, beta):
+            if depth == 0 or gameState.isWin() or gameState.isLose():
+                return self.evaluationFunction(gameState), Directions.STOP
+            num = gameState.getNumAgents()
+            lessdep = 1 if agentIndex + 1 == num else 0
+            if agentIndex == 0:
+                maxx = -999999
+                maxdirection = Directions.STOP
+                for action in gameState.getLegalActions(agentIndex):
+                    val, direction = dfs(gameState.generateSuccessor(agentIndex, action), depth - lessdep, (agentIndex + 1) % num, alpha, beta)
+                    if val > maxx:
+                        maxx = val
+                        maxdirection = action
+                    if val > beta:
+                        return val, action
+                    alpha = max(alpha, val)
+                return maxx, maxdirection
+            else:
+                minx = 999999
+                mindirection = Directions.STOP
+                for action in gameState.getLegalActions(agentIndex):
+                    val, direction = dfs(gameState.generateSuccessor(agentIndex, action), depth - lessdep, (agentIndex + 1) % num, alpha, beta)
+                    if val < minx:
+                        minx = val
+                        mindirection = action
+                    if val < alpha:
+                        return val, action
+                    beta = min(beta, val)
+                return minx, mindirection
+
+        val, action = dfs(gameState, self.depth, 0, -999999, 999999)
+        return action
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -183,7 +238,32 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def dfs(gameState: GameState, depth, agentIndex):
+            if depth == 0 or gameState.isWin() or gameState.isLose():
+                return self.evaluationFunction(gameState), Directions.STOP
+            num = gameState.getNumAgents()
+            lessdep = 1 if agentIndex + 1 == num else 0
+            if agentIndex == 0:
+                maxx = -999999
+                maxdirection = Directions.STOP
+                for action in gameState.getLegalActions(agentIndex):
+                    val, direction = dfs(gameState.generateSuccessor(agentIndex, action), depth - lessdep, (agentIndex + 1) % num)
+                    if val > maxx:
+                        maxx = val
+                        maxdirection = action
+                return maxx, maxdirection
+            else:
+                sum = 0
+                cnt = 0
+                mindirection = Directions.STOP
+                for action in gameState.getLegalActions(agentIndex):
+                    val, direction = dfs(gameState.generateSuccessor(agentIndex, action), depth - lessdep, (agentIndex + 1) % num)
+                    sum += val
+                    cnt += 1
+                return sum / cnt, Directions.STOP
+
+        val, action = dfs(gameState, self.depth, 0)
+        return action
 
 def betterEvaluationFunction(currentGameState: GameState):
     """
