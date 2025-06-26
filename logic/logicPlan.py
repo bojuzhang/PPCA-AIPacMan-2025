@@ -49,9 +49,10 @@ def sentence1() -> Expr:
     (not A) if and only if ((not B) or C)
     (not A) or (not B) or C
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    A = Expr('A')
+    B = Expr('B')
+    C = Expr('C')
+    return conjoin(A | B, (~A) % ((~B) | C), disjoin(~A, ~B, C))
 
 
 def sentence2() -> Expr:
@@ -62,9 +63,11 @@ def sentence2() -> Expr:
     (not (B and (not C))) implies A
     (not D) implies C
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    A = Expr('A')
+    B = Expr('B')
+    C = Expr('C')
+    D = Expr('D')
+    return conjoin(C % (B | D), A >> ((~B) & (~D)), (~(B & (~C))) >> A, (~D) >> C)
 
 
 def sentence3() -> Expr:
@@ -79,9 +82,14 @@ def sentence3() -> Expr:
 
     Pacman is born at time 0.
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    PacmanAlive_0 = PropSymbolExpr("PacmanAlive", time = 0)
+    PacmanAlive_1 = PropSymbolExpr("PacmanAlive", time = 1)
+    PacmanBorn_0 = PropSymbolExpr("PacmanBorn", time = 0)
+    PacmanKilled_0 = PropSymbolExpr("PacmanKilled", time = 0)
+    Expr1 = PacmanAlive_1 % ((PacmanAlive_0 & (~PacmanKilled_0)) | ((~PacmanAlive_0) & PacmanBorn_0))
+    Expr2 = ~(PacmanAlive_0 & PacmanBorn_0)
+    Expr3 = PacmanBorn_0
+    return conjoin(Expr1, Expr2, Expr3)
 
 def findModel(sentence: Expr) -> Dict[Expr, bool]:
     """Given a propositional logic sentence (i.e. a Expr instance), returns a satisfying
@@ -95,25 +103,20 @@ def findModelUnderstandingCheck() -> Dict[Expr, bool]:
     You should not use findModel or Expr in this method.
     """
     a = Expr('A')
-    "*** BEGIN YOUR CODE HERE ***"
-    print("a.__dict__ is:", a.__dict__) # might be helpful for getting ideas
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    a.op = 'a'
+    # print("a.__dict__ is:", a.__dict__) # might be helpful for getting ideas
+    return {a: True}
 
 def entails(premise: Expr, conclusion: Expr) -> bool:
     """Returns True if the premise entails the conclusion and False otherwise.
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    return findModel(premise & (~conclusion)) == False
 
 def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> bool:
     """Returns True if the (not inverse_statement) is True given assignments and False otherwise.
     pl_true may be useful here; see logic.py for its description.
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    return pl_true(~inverse_statement, assignments)
 
 #______________________________________________________________________________
 # QUESTION 2
@@ -137,9 +140,7 @@ def atLeastOne(literals: List[Expr]) -> Expr:
     >>> print(pl_true(atleast1,model2))
     True
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    return disjoin(literals)
 
 
 def atMostOne(literals: List[Expr]) -> Expr:
@@ -149,10 +150,11 @@ def atMostOne(literals: List[Expr]) -> Expr:
     the expressions in the list is true.
     itertools.combinations may be useful here.
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
-
+    com = itertools.combinations(literals, 2)
+    alls = []
+    for x in com:
+        alls.append((~x[0]) | (~x[1]))
+    return conjoin(alls)
 
 def exactlyOne(literals: List[Expr]) -> Expr:
     """
@@ -160,9 +162,7 @@ def exactlyOne(literals: List[Expr]) -> Expr:
     CNF (conjunctive normal form)that represents the logic that exactly one of 
     the expressions in the list is true.
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    return atLeastOne(literals) & atMostOne(literals)
 
 #______________________________________________________________________________
 # QUESTION 3
