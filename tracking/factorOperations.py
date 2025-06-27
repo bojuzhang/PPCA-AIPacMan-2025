@@ -101,9 +101,30 @@ def joinFactors(factors: List[Factor]):
                     "\n".join(map(str, factors)))
 
 
-    "*** YOUR CODE HERE ***"
-    raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    conditioned_var = []
+    unconditioned_var = []
+    factors_ = [factor for factor in factors]
+
+    for factor in factors_:
+        for var in factor.unconditionedVariables():
+            if var not in unconditioned_var:
+                unconditioned_var.append(var)
+            if var in conditioned_var:
+                conditioned_var.remove(var)
+        for var in factor.conditionedVariables():
+            if var not in conditioned_var and var not in unconditioned_var:
+                conditioned_var.append(var)
+    
+    ans = Factor(unconditioned_var, conditioned_var, factors_[0].variableDomainsDict())
+
+    alls = ans.getAllPossibleAssignmentDicts()
+    for case in alls:
+        p = 1
+        for factor in factors:
+            p *= factor.getProbability(case)
+        ans.setProbability(case, p)
+
+    return ans
 
 ########### ########### ###########
 ########### QUESTION 3  ###########
@@ -152,9 +173,20 @@ def eliminateWithCallTracking(callTrackingList=None):
                     "eliminationVariable:" + str(eliminationVariable) + "\n" +\
                     "unconditionedVariables: " + str(factor.unconditionedVariables()))
 
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        unconditioned_var = [var for var in factor.unconditionedVariables() if var != eliminationVariable]
+        conditioned_var = list(factor.conditionedVariables())
+        
+        ans = Factor(unconditioned_var, conditioned_var, factor.variableDomainsDict())
+
+        alls = ans.getAllPossibleAssignmentDicts()
+        for case in alls:
+            p = 0
+            new_case = dict(case)
+            for val in factor.variableDomainsDict()[eliminationVariable]:
+                new_case[eliminationVariable] = val
+                p += factor.getProbability(new_case)
+            ans.setProbability(case, p)
+        return ans
 
     return eliminate
 
