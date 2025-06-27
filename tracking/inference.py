@@ -183,11 +183,14 @@ def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
                                    set(evidenceDict.keys())
             eliminationOrder = sorted(list(eliminationVariables))
 
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        currentFactorsList = bayesNet.getAllCPTsWithEvidence(evidenceDict)
+        for var in eliminationOrder:
+            currentFactorsList, joinedFactor = joinFactorsByVariable(currentFactorsList, var)
+            if len(joinedFactor.unconditionedVariables()) > 1:
+                currentFactorsList.append(eliminate(joinedFactor, var))
 
-
+        return normalize(joinFactors(currentFactorsList))
+    
     return inferenceByVariableElimination
 
 inferenceByVariableElimination = inferenceByVariableEliminationWithCallTracking()
@@ -324,9 +327,12 @@ class DiscreteDistribution(dict):
         >>> empty
         {}
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        total = self.total()
+        if total == 0:
+            return
+        for key in self.keys():
+            self[key] /= total
+        
 
     def sample(self):
         """
@@ -349,9 +355,11 @@ class DiscreteDistribution(dict):
         >>> round(samples.count('d') * 1.0/N, 1)
         0.0
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        res = random.uniform(0, self.total())
+        for key, value in self.items():
+            res -= value
+            if res <= 0:
+                return key
 
 
 class InferenceModule:
@@ -424,9 +432,12 @@ class InferenceModule:
         """
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        trueDistance = manhattanDistance(pacmanPosition, ghostPosition)
+        if ghostPosition == jailPosition:
+            return int(noisyDistance == None)
+        if noisyDistance == None:
+            return int(jailPosition == ghostPosition) 
+        return busters.getObservationProbability(noisyDistance, trueDistance)
 
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
@@ -537,9 +548,9 @@ class ExactInference(InferenceModule):
         current position. However, this is not a problem, as Pacman's current
         position is known.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        
+        for pos in self.allPositions:
+            self.beliefs[pos] *= self.getObservationProb(observation, gameState.getPacmanPosition(), pos, self.getJailPosition())
         self.beliefs.normalize()
     
     ########### ########### ###########
@@ -555,9 +566,13 @@ class ExactInference(InferenceModule):
         Pacman's current position. However, this is not a problem, as Pacman's
         current position is known.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        newbeliefs = DiscreteDistribution()
+        for oldPos in self.allPositions:
+            newPosDist = self.getPositionDistribution(gameState, oldPos)
+            for pos in newPosDist.keys():
+                newbeliefs[pos] += newPosDist[pos] * self.beliefs[oldPos]
+        self.beliefs = newbeliefs
+        self.beliefs.normalize()
 
     def getBeliefDistribution(self):
         return self.beliefs
@@ -587,9 +602,9 @@ class ParticleFilter(InferenceModule):
         self.particles for the list of particles.
         """
         self.particles = []
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        num = len(self.legalPositions)
+        for i in range(self.numParticles):
+            self.particles.append(self.legalPositions[i % num])
 
     def getBeliefDistribution(self):
         """
@@ -599,9 +614,11 @@ class ParticleFilter(InferenceModule):
 
         This function should return a normalized distribution.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        ans = DiscreteDistribution()
+        for particle in self.particles:
+            ans[particle] += 1
+        ans.normalize()
+        return ans
     
     ########### ########### ###########
     ########### QUESTION 10 ###########
@@ -619,9 +636,15 @@ class ParticleFilter(InferenceModule):
         be reinitialized by calling initializeUniformly. The total method of
         the DiscreteDistribution may be useful.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        
+        distribution = DiscreteDistribution()
+        for particle in self.particles:
+            distribution[particle] += self.getObservationProb(observation, gameState.getPacmanPosition(), particle, self.getJailPosition())
+        if distribution.total() == 0:
+            self.initializeUniformly(gameState)
+        else:
+            distribution.normalize()
+            self.particles = [distribution.sample() for i in range(self.numParticles)]
     
     ########### ########### ###########
     ########### QUESTION 11 ###########
@@ -632,7 +655,8 @@ class ParticleFilter(InferenceModule):
         Sample each particle's next state based on its current state and the
         gameState.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
-
+        newparticles = []
+        for oldPos in self.particles:
+            newPosDist = self.getPositionDistribution(gameState, oldPos)
+            newparticles.append(newPosDist.sample())
+        self.particles = newparticles
