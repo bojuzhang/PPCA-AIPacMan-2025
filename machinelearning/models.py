@@ -371,11 +371,13 @@ def Convolve(input: tensor, weight: tensor):
     """
     input_tensor_dimensions = input.shape
     weight_dimensions = weight.shape
-    Output_Tensor = tensor(())
-    "*** YOUR CODE HERE ***"
-
-    
-    "*** End Code ***"
+    output_shape0 = input_tensor_dimensions[0] - weight_dimensions[0] + 1
+    output_shape1 = input_tensor_dimensions[1] - weight_dimensions[1] + 1
+    Output_Tensor = torch.zeros(output_shape0, output_shape1)
+    for i in range(output_shape0):
+        for j in range(output_shape1):
+            sub = input[i:i+weight_dimensions[0], j:j+weight_dimensions[1]]
+            Output_Tensor[i, j] = tensordot(sub, weight)
     return Output_Tensor
 
 
@@ -398,7 +400,15 @@ class DigitConvolutionalModel(Module):
         output_size = 10
 
         self.convolution_weights = Parameter(ones((3, 3)))
-        """ YOUR CODE HERE """
+        input_size = 26 * 26
+        output_size = 10
+        self.model = torch.nn.Sequential(
+            Linear(input_size, 100),
+            torch.nn.ReLU(),
+            Linear(100, 100),
+            torch.nn.ReLU(),
+            Linear(100, output_size),
+        )
 
 
     def run(self, x):
@@ -409,7 +419,8 @@ class DigitConvolutionalModel(Module):
         x = x.reshape(len(x), 28, 28)
         x = stack(list(map(lambda sample: Convolve(sample, self.convolution_weights), x)))
         x = x.flatten(start_dim=1)
-        """ YOUR CODE HERE """
+        
+        return self.model(x)
 
  
 
@@ -426,7 +437,8 @@ class DigitConvolutionalModel(Module):
             y: a node with shape (batch_size x 10)
         Returns: a loss tensor
         """
-        """ YOUR CODE HERE """
+
+        return cross_entropy(self.run(x), y)
 
         
 
@@ -434,5 +446,16 @@ class DigitConvolutionalModel(Module):
         """
         Trains the model.
         """
-        """ YOUR CODE HERE """
+        optimizer = optim.Adam(self.parameters(), lr = 0.001)
+        dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+
+        for epoch in range(5):
+            for batch in dataloader:
+                x, label = batch['x'], batch['label']
+                optimizer.zero_grad()
+                loss = self.get_loss(x, label)
+                loss.backward()
+                optimizer.step()
+            print(loss)
+
  
