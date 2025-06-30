@@ -1,6 +1,1 @@
-tutorial/__pycache__
-search/__pycache__
-multiagent/__pycache__
-logic/__pycache__
-tracking/__pycache__
-machinelearning/__pycache__
+*/__pycache__
