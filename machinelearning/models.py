@@ -1,6 +1,7 @@
 from torch import no_grad, stack
 from torch.utils.data import DataLoader
 from torch.nn import Module
+import torch
 
 
 """
@@ -99,8 +100,12 @@ class RegressionModel(Module):
     """
     def __init__(self):
         # Initialize your model parameters here
-        "*** YOUR CODE HERE ***"
         super().__init__()
+        self.model = torch.nn.Sequential(
+            Linear(1, 500),
+            torch.nn.ReLU(),
+            Linear(500, 1)
+        )
 
 
 
@@ -113,7 +118,7 @@ class RegressionModel(Module):
         Returns:
             A node with shape (batch_size x 1) containing predicted y-values
         """
-        "*** YOUR CODE HERE ***"
+        return self.model(x)
 
     
     def get_loss(self, x, y):
@@ -126,7 +131,7 @@ class RegressionModel(Module):
                 to be used for training
         Returns: a tensor of size 1 containing the loss
         """
-        "*** YOUR CODE HERE ***"
+        return mse_loss(self.forward(x), y)
  
   
 
@@ -144,7 +149,18 @@ class RegressionModel(Module):
             dataset: a PyTorch dataset object containing data to be trained on
             
         """
-        "*** YOUR CODE HERE ***"
+        optimizer = optim.Adam(self.parameters(), lr = 0.005)
+        dataloader = DataLoader(dataset, batch_size=10, shuffle=True)
+
+        while True:
+            for batch in dataloader:
+                x, label = batch['x'], batch['label']
+                optimizer.zero_grad()
+                loss = self.get_loss(x, label)
+                loss.backward()
+                optimizer.step()
+            if loss < 0.001:
+                break
 
 
             
@@ -174,8 +190,13 @@ class DigitClassificationModel(Module):
         super().__init__()
         input_size = 28 * 28
         output_size = 10
-        "*** YOUR CODE HERE ***"
-
+        self.model = torch.nn.Sequential(
+            Linear(input_size, 100),
+            torch.nn.ReLU(),
+            Linear(100, 100),
+            torch.nn.ReLU(),
+            Linear(100, output_size),
+        )
 
 
     def run(self, x):
@@ -192,7 +213,7 @@ class DigitClassificationModel(Module):
             A node with shape (batch_size x 10) containing predicted scores
                 (also called logits)
         """
-        """ YOUR CODE HERE """
+        return self.model(x)
 
 
     def get_loss(self, x, y):
@@ -208,7 +229,7 @@ class DigitClassificationModel(Module):
             y: a node with shape (batch_size x 10)
         Returns: a loss tensor
         """
-        """ YOUR CODE HERE """
+        return cross_entropy(self.run(x), y)
 
         
 
@@ -216,7 +237,17 @@ class DigitClassificationModel(Module):
         """
         Trains the model.
         """
-        """ YOUR CODE HERE """
+        optimizer = optim.Adam(self.parameters(), lr = 0.001)
+        dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+
+        for epoch in range(5):
+            for batch in dataloader:
+                x, label = batch['x'], batch['label']
+                optimizer.zero_grad()
+                loss = self.get_loss(x, label)
+                loss.backward()
+                optimizer.step()
+            print(loss)
 
 
 
@@ -237,7 +268,10 @@ class LanguageIDModel(Module):
         self.languages = ["English", "Spanish", "Finnish", "Dutch", "Polish"]
         super(LanguageIDModel, self).__init__()
         "*** YOUR CODE HERE ***"
-        # Initialize your model parameters here
+        self.hidden_size = 500
+        self.Layer1 = Linear(self.num_chars, self.hidden_size)
+        self.Layer2 = Linear(self.hidden_size, self.hidden_size)
+        self.Layer3 = Linear(self.hidden_size, len(self.languages))
 
 
     def run(self, xs):
@@ -269,7 +303,11 @@ class LanguageIDModel(Module):
             A node with shape (batch_size x 5) containing predicted scores
                 (also called logits)
         """
-        "*** YOUR CODE HERE ***"
+        h = torch.zeros(xs[0].shape[0], self.hidden_size)
+        for x in xs:
+            h = self.Layer1(x) + self.Layer2(h)
+            h = relu(h)
+        return self.Layer3(h)
 
     
     def get_loss(self, xs, y):
@@ -286,7 +324,7 @@ class LanguageIDModel(Module):
             y: a node with shape (batch_size x 5)
         Returns: a loss node
         """
-        "*** YOUR CODE HERE ***"
+        return cross_entropy(self.run(xs), y)
 
 
     def train(self, dataset):
@@ -303,7 +341,18 @@ class LanguageIDModel(Module):
 
         For more information, look at the pytorch documentation of torch.movedim()
         """
-        "*** YOUR CODE HERE ***"
+        optimizer = optim.Adam(self.parameters(), lr = 0.001)
+        dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+
+        for epoch in range(10):
+            for batch in dataloader:
+                x, label = batch['x'], batch['label']
+                x = movedim(x, 0, 1)
+                optimizer.zero_grad()
+                loss = self.get_loss(x, label)
+                loss.backward()
+                optimizer.step()
+            print(loss)
 
         
 
