@@ -247,7 +247,6 @@ class DigitClassificationModel(Module):
                 loss = self.get_loss(x, label)
                 loss.backward()
                 optimizer.step()
-            print(loss)
 
 
 
@@ -352,7 +351,6 @@ class LanguageIDModel(Module):
                 loss = self.get_loss(x, label)
                 loss.backward()
                 optimizer.step()
-            print(loss)
 
         
 
@@ -456,6 +454,5 @@ class DigitConvolutionalModel(Module):
                 loss = self.get_loss(x, label)
                 loss.backward()
                 optimizer.step()
-            print(loss)
 
  
