@@ -24,10 +24,20 @@ class DeepQNetwork(Module):
         # Remember to set self.learning_rate, self.numTrainingGames,
         # and self.batch_size!
         "*** YOUR CODE HERE ***"
-        self.learning_rate = 0
-        self.numTrainingGames = 0
-        self.batch_size = 0
-
+        self.learning_rate = 0.05
+        self.numTrainingGames = 2500
+        self.batch_size = 64
+        import torch
+        self.model = torch.nn.Sequential(
+            Linear(state_dim, 512),
+            torch.nn.ReLU(),
+            Linear(512, 512),
+            torch.nn.ReLU(),
+            Linear(512, 512),
+            torch.nn.ReLU(),
+            Linear(512, action_dim)
+        )
+        self.optimizer = optim.SGD(self.parameters(), lr = self.learning_rate)
         "**END CODE"""
         self.double()
 
@@ -42,7 +52,7 @@ class DeepQNetwork(Module):
         Output:
             loss node between Q predictions and Q_target
         """
-        "*** YOUR CODE HERE ***"
+        return mse_loss(self.run(states), Q_target)
 
 
     def forward(self, states):
@@ -58,7 +68,7 @@ class DeepQNetwork(Module):
             result: (batch_size x num_actions) numpy array of Q-value
                 scores, for each of the actions
         """
-        "*** YOUR CODE HERE ***"
+        return self.model(states)
 
     
     def run(self, states):
@@ -77,4 +87,7 @@ class DeepQNetwork(Module):
         Output:
             None
         """
-        "*** YOUR CODE HERE ***"
+        self.optimizer.zero_grad()
+        loss = self.get_loss(states, Q_target)
+        loss.backward()
+        self.optimizer.step()
